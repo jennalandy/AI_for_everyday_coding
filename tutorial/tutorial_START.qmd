@@ -1,0 +1,184 @@
+---
+title: "AI for Everyday Coding"
+subtitle: "Tutorial: Using Chat GPT, GitHub Copilot, and Cursor to enhance data science workflows"
+author: "Jenna Landy"
+date: "2025-12-10"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: false
+    theme: united
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r message=FALSE}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(ggrepel)
+library(ggh4x)
+library(patchwork)
+library(glue)
+```
+
+## Part 1: Chat GPT for Data Access and Literature Review
+
+I've extracted relevant code from Part 1, but for convenience, have removed all queries and responses.
+
+```{r}
+resp <- httr::GET(
+  url = "https://data.cdc.gov/resource/8xkx-amqh.csv",
+  query = list(
+    "$select" = "*",
+    "$where"  = "recip_state = 'CA' AND date BETWEEN '2021-01-01' AND '2021-12-31'",
+    "$limit"  = "500000"
+  )
+)
+
+httr::stop_for_status(resp)
+
+data <- readr::read_csv(httr::content(resp, as = "raw"), show_col_types = FALSE)
+```
+
+## Part 2: Data filtering and algorithm development with GitHub Copilot in VS Code
+
+::: callout-tip
+GitHub Copilot provides AI suggestions that can be implemented by pressing `tab`. It works best if you include a comment of what you're trying to do, then start to write your code (e.g., first line of tidyverse `data %>%`).
+
+In VS Code, GitHub copilot has a chat function with the context of whatever file you're working on. The chat is more powerful to create large chunks of code or answer questions about specific functions or errors.
+:::
+
+### a. Processing data
+
+```{r}
+# identify counties with all zeros
+
+# filter out unknown and zero counties
+
+# reduce only to columns we'll use (date, fips, recip_county, series_complete_pop_pct)
+
+# rename series_complete_pop_pct to pct for ease of use
+
+# identify unique counties
+
+# print counties separated by commas
+```
+
+### b. Code from pseudocode
+
+In this section, we'll use local linear regression to estimate derivatives (see [Brabanter et al. 2013](https://jmlr.csail.mit.edu/papers/volume14/debrabanter13a-deleted/debrabanter13a.pdf) for an overview of these types of methods). Basically, we estimate $\partial y/\partial x$ at a point $x_i$ with the slope of a linear regression on a set of points symmetric around $x_i$: $i-w,...,i,...,i+w$, where width $w$ is a parameter of the function.
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+Write a function that takes in vectors y and x and returns the approximate derivative dy/dx evaluated at each point $x_i$. For a value $x_i$, I want to do this by getting the linear regression coefficient using w points on either side ($x_{i-w} : x_{i+w}$), where width w can be a parameter of the function.
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+
+:::
+
+### c. Manipulating data
+
+```{r}
+# using an example county
+
+# add curve data (d1 and d2) and identify key points (speed up and slow down)
+
+# turn it into a function
+```
+
+
+## Part 3: Data visualization with GitHub Copilot in RStudio
+
+::: callout-tip
+Rstudio does not offer the chat functionality, but it still offers code completion. This a good starting point for users who are most comfortable with RStudio and only want to test out one new tool at a time.
+
+RStudio already has some default code completion that can compete with Copilot's suggestions. This means that pressing `tab` may not always implement Copilot's suggestions. To avoid this, you can disable the RStudio completions in Settings > Code > Completion > Show code completions: "Never".
+:::
+
+### a. Visualizing data
+
+```{r}
+# for an example county
+
+# plot the curve with facets for pct, d1, and d2
+# add vertical lines for speed_up and slow_down
+# add horizontal lines at speed_up and slow_down for pct facet only!
+# simple theme without grey background
+# rescale pct facet to be 0-100
+
+# turn it into a function
+```
+
+### b. Offloading repetitive tasks
+
+```{r}
+# for an example county
+
+# get key metrics from the curve data
+# duration of rapid vaccination window
+# pct at start and stop of rapid vaccination window
+# pct gained during rapid vaccination window
+# avg slope during rapid vaccination window
+# actual dates
+# max at end of 2021
+
+# turn it into a function
+```
+
+### c. Exploratory data analysis (EDA)
+
+```{r}
+# run county_curve_metrics on all counties and use each
+# output as a row in a matrix
+
+# turn into dataframe with correct column types(county as character, start and stop as dates, rest as numeric)
+```
+
+```{r}
+# plot date where speedup began vs slope of rapid vaccination phase
+
+# label points with county names with repelling
+
+# simple theme without grey background
+```
+
+```{r}
+# investigate interesting counties from previous plot
+```
+
+## Part 4: Refactoring with Cursor
+
+## Part 5: Agentic AI with Cursor
+
+Use Cursor agent with the following prompt:
+
+Autonomously upgrade 2_3_4_working.qmd into a parameterized Quarto report with reproducible outputs.
+Create new versions of 2_3_4_working.qmd, 4_data_funcs.R, 4_viz_funcs.R in a new folder called "5_agentic".
+
+1) Add params: state, start_date, end_date, top_n_counties, window_w.
+2) Update the CDC query and downstream code to use params.
+3) Refactor helpers into 4_data_funcs.R and 4_viz_funcs.R:
+   - add process_data(data) mirroring the logic already inline,
+   - expose county_curve_metrics() that returns a tidy row,
+   - keep approx_derivative() but make w default to params$window_w.
+4) Replace hard-coded examples (e.g., "Santa Cruz County") with param-driven logic; generate plots for the top_n_counties by avg slope.
+5) Add a new “Part 6: Clustering” (PCA + k-means) working on the county_metrics_df dataframe
+    - Perform PCA on all variables besides county and stop date 
+    - Automatically choose how many PCs to use such that they combined explain over 90% of variance
+    - Automatically choose clusters between 2:6 to maximize silhouette score
+    - Produce a labeled PC scatter + biplot, with points colored by cluster
+6) Emit artifacts on knit:
+   - data/county_metrics.csv
+   - fig/county_curves/*.png and fig/cluster_biplot.png
+7) Do not enable knitr caching
+8) Create a README in the new folder with instructions to knit with custom params and where outputs are saved.
+
+Deliverables: edited files, new params block, reproducible figures/CSV paths, and README run instructions.

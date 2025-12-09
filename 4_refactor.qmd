@@ -1,0 +1,162 @@
+---
+title: "AI for Everyday Coding"
+subtitle: "Part 5: Cursor for Refactoring with Cross-File Context"
+author: "Jenna Landy"
+date: "2025-12-10"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: false
+    theme: united
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r message=FALSE}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(ggrepel)
+library(ggh4x)
+library(patchwork)
+library(glue)
+
+source("4_data_funcs.R")
+source("4_viz_funcs.R")
+```
+
+## Part 1: Chat GPT for Data Access and Literature Review
+
+I've extracted relevant code from Part 1, but for convenience, have removed all queries and responses.
+
+```{r}
+resp <- httr::GET(
+  url = "https://data.cdc.gov/resource/8xkx-amqh.csv",
+  query = list(
+    "$select" = "*",
+    "$where"  = "recip_state = 'CA' AND date BETWEEN '2021-01-01' AND '2021-12-31'",
+    "$limit"  = "500000"
+  )
+)
+
+httr::stop_for_status(resp)
+
+data <- readr::read_csv(httr::content(resp, as = "raw"), show_col_types = FALSE)
+```
+
+## Part 2: Data filtering and algorithm development with GitHub Copilot in VS Code
+
+::: callout-tip
+Rstudio does not offer the chat functionality, but it still offers code completion. This a good starting point for users who are most comfortable with RStudio and only want to test out one new tool at a time.
+
+RStudio already has some default code completion that can compete with Copilot's suggestions. This means that pressing `tab` may not always implement Copilot's suggestions. To avoid this, you can disable the RStudio completions in Settings > Code > Completion > Show code completions: "Never".
+:::
+
+### a. Processing data
+
+```{r}
+data_filtered <- process_data(data)
+
+# identify unique counties
+counties <- unique(data_filtered$recip_county)
+
+# print counties separated by commas
+paste(counties, collapse = ", ")
+```
+
+### b. Code from pseudocode
+
+In this section, we'll use local linear regression to estimate derivatives (see [Brabanter et al. 2013](https://jmlr.csail.mit.edu/papers/volume14/debrabanter13a-deleted/debrabanter13a.pdf) for an overview of these types of methods). Basically, we estimate $\partial y/\partial x$ at a point $x_i$ with the slope of a linear regression on a set of points symmetric around $x_i$: $i-w,...,i,...,i+w$, where width $w$ is a parameter of the function.
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+Write a function that takes in vectors y and x and returns the approximate derivative dy/dx evaluated at each point $x_i$. For a value $x_i$, I want to do this by getting the linear regression coefficient using w points on either side ($x_{i-w} : x_{i+w}$), where width w can be a parameter of the function.
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+See `approx_derivative` in `4_data_funcs.R`.
+:::
+
+### c. Manipulating data
+
+```{r}
+curve_data <- county_curve("Santa Cruz County")
+head(curve_data)
+```
+
+## Part 3: Data visualization with GitHub Copilot in RStudio
+
+::: callout-tip
+GitHub Copilot only includes tab completion in RStudio. It works best if you include a comment of what you're trying to do, then start to write your code (e.g., first line of tidyverse `data %>%`).
+
+RStudio's has some default code completion that can compete with Copilot's suggestions. If this bothers you, you can disable the RStudio completions in Settings > Code > Completion > Show code completions: "Never".
+:::
+
+### a. Visualizing data
+
+```{r}
+plot_county_curve("Santa Cruz County")
+```
+
+### b. Offloading repetitive tasks
+
+```{r}
+county_curve_metrics("Santa Cruz County")
+```
+
+### c. Exploratory data analysis (EDA)
+
+```{r}
+# run county_curve_metrics on all counties and use each
+# output as a row in a matrix
+county_curvature_data <- counties %>%
+    lapply(., county_curve_metrics) %>%
+    do.call(rbind, .)
+
+# turn into dataframe with correct column types
+county_curvature_data <- county_curvature_data %>%
+    data.frame() %>%
+    mutate(
+        # make all columns numeric besides county
+        across(-c(county), as.numeric),
+        # makde date columns dates
+        across(c(start, stop), as.Date)
+    )
+head(county_curvature_data)
+```
+
+```{r}
+# plot date where speedup began vs slope of rapid vaccination phase
+ggplot(county_curvature_data, aes(x = start, y = slope, label = county)) +
+    geom_point() +
+    ggrepel::geom_label_repel(
+        size = 2,
+        # no shape around the text
+        label.size = 0,
+        # no background
+        fill = NA
+    ) +
+    labs(
+        x = "Start of Rapid Vaccination Phase",
+        y = "Slope of Rapid Vaccination Phase",
+        title = "County-level COVID-19 Vaccination Dynamics in California, 2021"
+    ) +
+    my_theme()
+```
+
+Counties that started their rapid vaccination phase later tend to have a higher slope (playing catch-up?). We take a look at to counties on either extreme of this trend: Santa Clara didn't start rapid vaccination until April but had a high slope (0.65% per-day increase), while Lassen started rapid vaccination in February but had a low slope (below 0.2% per-day increase).
+
+```{r}
+plot_county_curve("Santa Clara County")
+plot_county_curve("Lassen County")
+```
+
+## Part 5: Refactoring into multiple files with Cursor
+
+Follow the instructions in the README.md file to refactor the code into multiple files.

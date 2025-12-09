@@ -1,0 +1,268 @@
+---
+title: "AI for Everyday Coding"
+subtitle: "Part 2-3-4-5: Parameterized Agentic Report"
+author: "Jenna Landy"
+date: "2025-12-10"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    theme: united
+editor:
+  markdown:
+    wrap: 72
+params:
+  state: "CA"
+  start_date: "2021-01-01"
+  end_date: "2021-12-31"
+  top_n_counties: 6
+  window_w: 40
+---
+
+```{r setup, message=FALSE}
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(janitor)
+library(ggrepel)
+library(ggh4x)
+library(patchwork)
+library(glue)
+library(httr)
+library(cluster)
+
+knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
+
+source("4_data_funcs.R")
+source("4_viz_funcs.R")
+
+# Output directories (relative to this qmd directory)
+out_data_dir <- file.path("data")
+out_fig_dir  <- file.path("fig")
+county_curves_dir <- file.path(out_fig_dir, "county_curves")
+dir.create(out_data_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(out_fig_dir,  recursive = TRUE, showWarnings = FALSE)
+dir.create(county_curves_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+## Part 1: Data Access (CDC, parameterized)
+
+```{r}
+# Build parameterized query for CDC data
+cdc_endpoint <- "https://data.cdc.gov/resource/8xkx-amqh.csv"
+query_where <- glue(
+  "recip_state = '{params$state}' AND date BETWEEN '{params$start_date}' AND '{params$end_date}'"
+)
+
+resp <- httr::GET(
+  url = cdc_endpoint,
+  query = list(
+    "$select" = "*",
+    "$where"  = query_where,
+    "$limit"  = "500000"
+  )
+)
+httr::stop_for_status(resp)
+data <- readr::read_csv(httr::content(resp, as = "raw"), show_col_types = FALSE)
+
+# Process and filter
+data_filtered <- process_data(data)
+counties <- unique(data_filtered$recip_county)
+length(counties)
+```
+
+## Part 2: Derivative-based features
+
+We estimate partial derivatives with a local window of width `w` (default
+`params$window_w`). The function `approx_derivative()` is used downstream for
+county-level curves and metrics.
+
+```{r}
+# Example derivative on full dataset (vectorized across all rows)
+d_all <- approx_derivative(
+  y = data_filtered$pct,
+  x = as.numeric(data_filtered$date),
+  w = params$window_w
+)
+summary(d_all)
+```
+
+## Part 3: Visualization helpers (parameter-aware)
+
+```{r}
+# Demonstration using the first county available
+example_county <- head(counties, 1)
+plot_county_curve(example_county, data_filtered = data_filtered, deriv = TRUE, w = params$window_w)
+```
+
+## Part 4: Metrics and EDA
+
+```{r}
+# Compute metrics for each county (tidy rows)
+county_metrics_list <- lapply(counties, function(cty) {
+  county_curve_metrics(data_filtered, cty, w = params$window_w)
+})
+county_metrics_df <- dplyr::bind_rows(county_metrics_list) %>%
+  dplyr::arrange(dplyr::desc(avg_slope))
+
+# Save metrics to CSV artifact
+metrics_path <- file.path(out_data_dir, "county_metrics.csv")
+readr::write_csv(county_metrics_df, metrics_path)
+metrics_path
+```
+
+```{r}
+# EDA: start date of rapid vaccination vs average slope during that window
+county_metrics_df %>%
+  ggplot(aes(x = start, y = avg_slope)) +
+  geom_point() +
+  geom_text_repel(aes(label = county), size = 2) +
+  theme_bw()
+```
+
+## Part 5: Agentic generation of county curve figures
+
+```{r}
+top_n <- as.integer(params$top_n_counties)
+top_counties <- county_metrics_df %>%
+  dplyr::arrange(dplyr::desc(avg_slope)) %>%
+  dplyr::slice(1:top_n) %>%
+  dplyr::pull(county)
+top_counties
+```
+
+```{r}
+# Generate and save plots for the top_n_counties by avg slope
+invisible(lapply(top_counties, function(cty) {
+  file_name <- paste0(gsub("[^A-Za-z0-9]+", "_", cty), ".png")
+  out_path  <- file.path(county_curves_dir, file_name)
+  save_county_curve_plot(
+    county = cty,
+    file_path = out_path,
+    data_filtered = data_filtered,
+    deriv = TRUE,
+    w = params$window_w
+  )
+  out_path
+}))
+```
+
+## Part 6: Clustering (PCA + k-means on county metrics, automatic choices)
+
+We run PCA on `county_metrics_df`, excluding only `county` and `stop` as
+requested. Dates are converted to numeric where needed. We then select the
+minimum number of PCs that explain at least 90% of variance, choose k in 2:6
+with the best silhouette score, and produce a PC scatter with biplot arrows.
+The final figure is saved as `fig/cluster_biplot.png`.
+
+```{r}
+# Prepare numeric metrics matrix from county_metrics_df
+metrics_df <- county_metrics_df
+if ("start" %in% names(metrics_df)) {
+  metrics_df$start <- as.numeric(metrics_df$start)
+}
+metrics_numeric <- metrics_df %>%
+  dplyr::select(-county, -stop)
+
+# Coerce to numeric matrix and impute NA with column means
+mat <- as.matrix(data.frame(lapply(metrics_numeric, function(col) as.numeric(col))))
+rownames(mat) <- county_metrics_df$county
+
+for (j in seq_len(ncol(mat))) {
+  if (anyNA(mat[, j])) {
+    col_mean <- mean(mat[, j], na.rm = TRUE)
+    if (is.finite(col_mean)) {
+      mat[is.na(mat[, j]), j] <- col_mean
+    } else {
+      # if entire column is NA, set to zeros (will be dropped by zero variance filter)
+      mat[, j] <- 0
+    }
+  }
+}
+
+# Drop any zero-variance columns
+sd_cols <- apply(mat, 2, stats::sd)
+keep_cols <- which(is.finite(sd_cols) & sd_cols > 0)
+mat <- mat[, keep_cols, drop = FALSE]
+
+# PCA on metrics
+pca <- prcomp(mat, center = TRUE, scale. = TRUE)
+var_explained <- (pca$sdev ^ 2) / sum(pca$sdev ^ 2)
+cum_var <- cumsum(var_explained)
+num_pcs <- which(cum_var >= 0.90)[1]
+num_pcs
+
+scores <- pca$x[, 1:num_pcs, drop = FALSE]
+dist_mat <- dist(scores)
+
+# Choose k in 2:6 to maximize mean silhouette width
+k_grid <- 2:6
+sil_scores <- sapply(k_grid, function(k) {
+  km <- kmeans(scores, centers = k, nstart = 25)
+  sil <- cluster::silhouette(km$cluster, dist_mat)
+  mean(sil[, 3])
+})
+best_k <- k_grid[which.max(sil_scores)]
+best_k
+
+best_km <- kmeans(scores, centers = best_k, nstart = 25)
+clusters <- factor(best_km$cluster)
+
+# Prepare PC1-PC2 scatter
+pc_df <- data.frame(
+  county = rownames(pca$x),
+  PC1 = pca$x[, 1],
+  PC2 = pca$x[, 2],
+  cluster = clusters,
+  stringsAsFactors = FALSE
+)
+
+# Compute top loading arrows for biplot (limit arrows to avoid clutter)
+rot <- pca$rotation[, 1:2, drop = FALSE]
+loading_strength <- rowSums(rot ^ 2)
+top_idx <- order(loading_strength, decreasing = TRUE)[seq_len(min(10L, nrow(rot)))]
+arrows_df <- data.frame(
+  var = rownames(rot)[top_idx],
+  xend = rot[top_idx, 1],
+  yend = rot[top_idx, 2],
+  stringsAsFactors = FALSE
+)
+
+# Scale arrows to data range
+scale_factor <- 0.8 * max(abs(c(pc_df$PC1, pc_df$PC2)), na.rm = TRUE)
+arrows_df$xend <- arrows_df$xend * scale_factor
+arrows_df$yend <- arrows_df$yend * scale_factor
+
+library(ggrepel)
+cluster_plot <- ggplot(pc_df, aes(x = PC1, y = PC2, color = cluster)) +
+  geom_point(alpha = 0.9) +
+  ggrepel::geom_text_repel(aes(label = county), size = 2, show.legend = FALSE) +
+  geom_segment(
+    data = arrows_df,
+    aes(x = 0, y = 0, xend = xend, yend = yend),
+    inherit.aes = FALSE,
+    arrow = arrow(length = grid::unit(0.02, "npc")),
+    color = "grey30"
+  ) +
+  ggrepel::geom_text_repel(
+    data = arrows_df,
+    aes(x = xend, y = yend, label = var),
+    inherit.aes = FALSE,
+    size = 2,
+    color = "grey20"
+  ) +
+  theme_bw() +
+  labs(
+    title = "PCA Scatter with Biplot Arrows (County Metrics)",
+    subtitle = paste0("PCs explaining >=90% variance: ", num_pcs, 
+                      " | Best k (silhouette): ", best_k),
+    color = "Cluster"
+  )
+
+cluster_fig_path <- file.path(out_fig_dir, "cluster_biplot.png")
+ggsave(cluster_fig_path, cluster_plot, width = 10, height = 7, dpi = 150)
+cluster_fig_path
+```
+
+

@@ -1,0 +1,208 @@
+## Part 1: Chat GPT for data access and literature review
+
+
+- **A. Data availability:** Explain the goal of this project to ChatGPT, both long term and what you'll need help with today. Ask for its help to idenfity relevant publicly accessible datasets.
+    - You can try a few different versions of this prompt to get a sense for how much detail is needed for a good response
+    - Try asking for the response in a concise table that could fit on one printed page. (Sizing is important, as it often provides tables where you have to scroll very far horizontally.)
+        - It should provide COVID-19 Vaccinations in the United States,
+County data (data.CDC.gov) as an option. This is what we'll proceed with
+        -  Explore the download options on the link it provided.
+- **B. Data access**: Inform ChatGPT the data we've decided to use. Let it know if you have any compute limitations (e.g., running code locally, or generally dont want to download more than you need to). Request help using the API to download the CA counties data for 2021 using R.
+    - Experiment with asking for step by step instructions, including how to get the API link.
+    - The CDC website says that SODA3 option requires authentication, so it is easiest to use SODA2.
+    - It is best to provide the link to ChatGPT directly or to paste it in after the fact, because it can make links up sometimes.
+    - Use its R code to download the data, and look at its structure.
+- **C. Understanding data format:**: Figure out which column is the percent of population fully vaccinated in a given county on a given day. This is what we'll be exploring.
+    - You can look at column names yourself, or paste them into ChatGPT to help you find it.
+    - Whatever you determine is the column of interest, verify it on the CDC website!
+- **D. General literature review:** 
+    - Use ChatGPT to compare existing modeling options for our county-specific cumulative vaccine curves. Explain the type of questions we're interested in (describe what we mean by "rapid vaccination phase"). 
+        - How have people quantified these curves before? Are there key limitations of past approaches?
+        - Is there precedent for what we want to do?
+        - Look at papers it cites and follow up its suggestions with further questions and independent google searches.
+- **E. Connecting literature to our data:** Try to understand if our data violates assumptions of previous curve metrics. Look at a few of these curves and provide information to ChatGPT.
+    - For example, I see many different shapes of curves (different "fast increasing zones": San Diego County is a small slope February through June, Santa Cruz County is a steeper slope March through June)
+    - For example, I see long tails on the right side that aren't necessarily an asympote—all curves are still increasing relatively linearly at the end of 2021
+    - My intuition is that none of these options it's introduced fit the data very well.
+    - Provide this info to ChatGPT and see what it says!
+- **F. Specific concepts literature review:** Propose the specific approach we'll try. We want to identify key time points (start of speed up = date of max second derivative, start of slow down = date of min second derivative), and computing things like \# days in rapid vaccination phase, pct increase during rapid vaccination phase, pct vaccinated at start/end of phase, and max pct (at end of 2021).
+    - Ask it's opinion! Does this seem like a reasonable idea?
+    - Have it search more specifically for whether this has been done before in the context of COVID vaccinations or in other fields.
+
+## Part 2: Data filtering and algorithm development with GitHub Copilot in VS Code
+
+- **A. Processing data**
+    - Filter out
+        - All 0s
+        - Unknown county name
+    - Select colums we'll use
+        - Date
+        - County name
+        - County fips code
+        - % Fully Vaccinated
+    - Rename
+        - `pct` for % fully vaccinated for easy access to key variable
+- **B. Code from pseudocode:*** Use the chat to draft the code to approximate derivatives with local linear regression.
+    - Giving more context about input and assumptions helps!
+    - Suggest what can be parameterized (for example, window width w).
+    - Play around with how the chat can be used to directly edit the file.
+    - For now use a default value of `w = 40` throughout the notebook. In a real research project, you'd want to stress test this and check our assumption that all counties share the same general pattern of a single rapid vaccination phase (for example of where this assumption fails, look at "Calaveras County").
+- **C. Manipulating data:** Using an example county (e.g., "Santa Cruz County"), use the tab complete functionality to write a tidyverse code chunk that computes first and second derivative and identifies key dates for speed up and slow down.
+    - Use comments to guide Copilot (e.g., `# add columns for the first and second derivatives`)
+    - Turn this into a function that takes in parameters `county` and `w` and returns a `curve_data` dataframe
+
+## Part 3: Data visualization with GitHub Copilot in RStudio
+
+- **A. Visualizing data:** Again using an example county, use the tab complete functionality to write a tidyverse/ggplot2 code chunk that starts with `curve_data` and plots the `pct` curve and its derivatives as three facets.
+    - Add dashed red vertical lines at the key dates. Again use comments to guide Copilot (e.g., `# vertical red dashed lines at speed_up and slow_down`)
+    - Turn this into a function that takes in parameters `county` and `w` and returns a `ggplot2` object.
+    **Possible failure example:** Add dashed red horizontal lines at the key dates, but only to the `pct` curve.
+        - This will mess up the limits of the facets, try to fix this with Copilot chat.
+        - If that's not working, add `+ ggh4x::facetted_pos_scales(` to the end of your plot and see if Copilot autocompletes.
+        - Ask the Copilot chat to explain how the final code chunk works.
+- **B. Offloading repetitive tasks:** Write a function that takes in parameters `county` and `w` and computes metrics of the rapid vaccination phase of the curve
+    - Metrics:
+        - Start of rapid vaccination phase
+        - End of rapid vaccination phase
+        - Duration (days) of rapid vaccination phase
+        - % Vaccinated at beginning of rapid vaccination phase
+        - % Vaccinated at end of rapid vaccination phase
+        - % Vaccinated gained during rapid vaccination phase
+        - Avg Slope of rapid vaccination phase
+        - Max % Vaccinated at the end of 2021
+    - Have the function return a named list. Note how the tab complete automates this repetitive chunk of code!
+- **C. Exploratory data analysis (EDA):** 
+    - Apply the metrics function to each county and consolidate this data into a dataframe.
+    - Do some initial EDA
+
+## Part 4: Refactoring with Cursor
+
+- **A. Splitting into multiple files:** Create separate files for visualization and data processing functions.
+    - At the top of the quarto notebook, start to type `source(`. Make sure to source both into the quarto notebook.
+        - Note how cursor has context of these new file names. Copilot does not always have this context!
+    - Move function definitions into their respective files.
+- **B. Exploring cross-file context:** In the visualization file, add a new function to define your custom ggplot theme, called `my_theme` with no parameters.
+    - Cursor should auto-fill this function with the theme elements we've used throughout the project
+    ```{r eval = FALSE}
+    theme_bw() +
+    theme(
+        strip.placement = "outside",
+        strip.text.y.left = element_text(angle = 0),
+        text = element_text(size = 14)
+        plot.title = element_text(size = 16, face = if (title_bold) "bold" else "plain")
+    )
+    ```
+    - In this same file, Cursor should auto-suggest replacing themes in each plot with your new theme
+    - Going back to the quarto notebook, Cursor should auto-suggest updating themes in any additional plots we have there. Again, this is utilizing the cross-file context!
+    - Add a parameter to `my_theme` that specifies whether the title is bold or not. Going back to the quarto notebook and clicking on a `my_theme()` call, Cursor should auto-suggest using this parameter. Again, this is utilizing the cross-file context!
+
+## Part 5: Agentic AI in Cursor
+
+Use Cursor agent with the following prompt:
+
+Autonomously upgrade 2_3_4_working.qmd into a parameterized Quarto report with reproducible outputs.
+Create new versions of 2_3_4_working.qmd, 4_data_funcs.R, 4_viz_funcs.R in a new folder called "5_agentic".
+
+1) Add params: state, start_date, end_date, top_n_counties, window_w.
+2) Update the CDC query and downstream code to use params.
+3) Refactor helpers into 4_data_funcs.R and 4_viz_funcs.R:
+   - add process_data(data) mirroring the logic already inline,
+   - expose county_curve_metrics() that returns a tidy row,
+   - keep approx_derivative() but make w default to params$window_w.
+4) Replace hard-coded examples (e.g., "Santa Cruz County") with param-driven logic; generate plots for the top_n_counties by avg slope.
+5) Add a new “Part 6: Clustering” (PCA + k-means) working on the county_metrics_df dataframe
+    - Perform PCA on all variables besides county and stop date 
+    - Automatically choose how many PCs to use such that they combined explain over 90% of variance
+    - Automatically choose clusters between 2:6 to maximize silhouette score
+    - Produce a labeled PC scatter + biplot, with points colored by cluster
+6) Emit artifacts on knit:
+   - data/county_metrics.csv
+   - fig/county_curves/*.png and fig/cluster_biplot.png
+7) Do not enable knitr caching
+8) Create a README in the new folder with instructions to knit with custom params and where outputs are saved.
+
+Deliverables: edited files, new params block, reproducible figures/CSV paths, and README run instructions.
+
+## Part 6: Failure Examples
+
+### Incorrect code suggestions
+
+In `plot_county_curve`, I was unable to get Copilot or ChatGPT to recommend the correct function `ggh4x::facetted_pos_scales`, and the suggestions it offered did not work. 
+
+The first recommendation changes the yscae of all facets, which is not what I asked for.
+
+The second recommendation libraries the correct package `ggh4x`, but does not use it in the code suggestion. Implementing this suggestion results in an error message.
+
+<img src="failure_example_1.png" width = 50%>
+
+Once I started typed `+ ggh4x::facetted_pos_scales(` myself, Copilot was able to complete the code correctly.
+
+### Inefficient code suggestions
+
+In the tab-completion suggestions for evaluating clustering metrics on multiple options of k, the original suggestion was of the following form:
+
+```{r eval = FALSE}
+for (k in ks) {
+    km <- kmeans(pca_scores, centers = k, nstart = 20)
+
+    # silhouette score
+    sil <- silhouette(km$cluster, dist(pca_scores))
+    ...
+}
+```
+
+This suggestion was inefficient because it re-computes the distance matrix for each value of k, and also because `nstart=20` is more than what is needed to compare values of k. The suggested code actually broke the R session.
+
+I manually edited it to use `nstart = 3` and to compute the distance matrix once outside the loop. Once a k is chosen, I still use `nstart = 20` for the final clustering.
+
+### Unnecessary code suggestions
+
+When creating a plot of proportion of variance explained by each PC, Copilot suggested adding `geom_line` and `geom_point` layers on top of the bar plot. This is unnecessary and clutters the plot.
+
+```{r eval = FALSE}
+explained_variance <- summary(pca)$importance[2, ]
+data.frame(
+    PC = paste0("PC", 1:length(explained_variance)),
+    Variance_Explained = explained_variance
+) %>%
+    ggplot(aes(x = PC, y = Variance_Explained)) +
+    geom_bar(stat = "identity") +
+    geom_line(aes(group = 1)) +
+    geom_point(size = 3) +
+    labs(
+        x = "Principal Component",
+        y = "Proportion of Variance Explained",
+        title = "Scree Plot of PCA on County Vaccination Dynamics"
+    ) +
+    my_theme()
+```
+
+### Improper statistical advice
+
+Using Copilot tab complete suggestions for the clustering section, it automatically used all PC dimensions for k-means clustering. This is not best practice, as the higher PCs often contain noise rather than signal.
+
+After I manually added the comment `# step 2: look at percent each PC explains, determine how many to use in clustering`, Copilot was able to correctly use only the first 2 PCs for clustering.
+
+### No warnings unless explicitly asked for
+
+In Part 1f, ChatGPT did warn about potential assumption violations ("assumes a single dominant acceleration and deceleration") and implementation issues ("derivatives near Jan 1 / Dec 31 are unstable without boundary corrections"), but only because we explicitly asked "are there any major issues or improper assumptions this would make?". I originally made the query without this line, and there was no sense of caution in the response.
+
+It's important to take suggestions with a grain of salt and to be critical of every seemly easy solution. I recommend to always ask ChatGPT to be critical of itself (you can even ask it to pretend it is a statitical consultant, a reviewer for a particular journal, or a critical academic twitter personality). But always make decisions with your human brain!
+
+This is especially critical for research questions. It's easy to test individual lines of code to make sure they work on a few examples, but it is much harder to reason through every way a research suggestion might be wrong.
+
+### Misinterpretations when not enough context is provided
+
+In Part 6, I originally just asked the Cursor agent to "add a new “Part 6: Clustering” (PCA + k-means)" without specifying that it should be working on the county metrics dataframe. The first suggestion was to do PCA on the time series data itself, which is not what I wanted.
+
+When providing context to any of these models, be as specific as possible about what data you're working with and what your goals are.
+
+## Part 7: Independent Exploration of Edge Cases
+
+- Ask ChatGPT niche questions about what you're an expert on. See what it gets right and where it fails.
+- Again in a niche subject, ask for citations for relevant papers. See if it makes up references. (You don't have to be an expert here, just verify the titles on google scholar).
+- Paste in a small dataset and ask it to do an analysis that requires precise arithmetic. Look for small numerical mistakes, rounding errors, or lost track of units.
+- Ask it for advice on something where you already know the answer. Argue really hard for something that you know is wrong, and see if it ends up agreeing with you and trying to provide evidence in the wrong direction.
+- Provide it with a paragraph with factual and grammatical errors and ask for general advice. See if it fixes both, or only suggests grammatical fixes.
+- Tell it that a specific paper developed a method that it did not, and ask for an explanation. See if it corrects you or hallucinates the method is real.
+- Provide a figure and ask for conclusions that depend on visual detail. See if it can reason about visualizations.

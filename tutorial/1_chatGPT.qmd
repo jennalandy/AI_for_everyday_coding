@@ -1,0 +1,255 @@
+---
+title: "AI for Everyday Coding"
+subtitle: "Part 1: Chat GPT for Data Access and Literature Review"
+author: "Jenna Landy"
+date: "2025-12-10"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: false
+    theme: united
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r message=FALSE}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(ggrepel)
+```
+
+## Part 1: Chat GPT for Data Access and Literature Review
+
+Throughout this section, I'll highlight queries with a blue background and replies with a green background. Note that GPT is not deterministic, so the exact response may vary if you input the same query.
+
+### a. Data availability
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+I want to study the dynamics of vaccination rates (e.g., quantifying
+early adopters, counties that rapidly vs slowly vaccinated, etc.) across
+California counties in 2021 and to understand how the dynamics are
+connected to demographic factors. For this chat, always be concise. Use small tables when applicable (should fit on printer paper). Use the package::function notation whenever calling functions.
+
+Today, I want help identifying the best publicly available data to use
+and defining an initial quantification of these dynamics.
+
+I’d like to start by looking at some vaccination rates data. First,
+please list relevant datasets comparing the ease of access, file format, and
+relevance to my question.
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+Below is a concise, notebook-friendly markdown table of publicly
+available datasets suitable for studying county-level COVID-19
+vaccination dynamics in California (2021) and linking them to
+demographic factors. I chose only high-relevance, high-quality sources
+that are easy to access and well-documented.
+
+**Key Datasets for California County-Level Vaccination Dynamics (2021)**
+
+| Dataset / Source | What It Provides | Format & Ease of Access | Relevance to Your Question |
+|-----------------|-----------------|------------------|--------------------|
+| **California Health & Human Services (CHHS) – COVID-19 Vaccine Progress Dashboard** | Daily/weekly county-level vaccination counts & rates (1st dose, fully vaccinated, boosters). Historical data available for 2021. | CSV directly downloadable; API available; very easy to access. | **Primary dataset** for characterizing vaccination dynamics across counties. |
+| **CDC COVID-19 Vaccinations in the United States, County** | Daily county-level vaccination counts nationwide; includes California; often smoother than state-level reporting. | CSV via CDC Data Tracker; API ([data.cdc.gov](https://data.cdc.gov/Vaccinations/COVID-19-Vaccinations-in-the-United-States-County/8xkx-amqh/about_data)) available; easy. | Good for **cross-validation**, fills occasional gaps in CHHS data. |
+| **US Census Bureau – American Community Survey (ACS) 5-Year Estimates** | Demographics: age, race/ethnicity, income, education, urbanicity, population density. | Downloadable CSV; API available; moderate effort. | Essential for linking vaccination pace to **demographics**. |
+| **USDA Economic Research Service – Rural-Urban Continuum Codes** | County-level codes for rurality/urbanicity. | CSV; very easy. | Useful predictor of vaccination uptake patterns. |
+| **MIT Election Data & Science Lab – County Presidential Election Returns (2020)** | County-level political leaning variables. | CSV; easy. | Often strongly associated with vaccination behavior; helpful to include as a **contextual explanatory variable**. |
+| **County Health Rankings & Roadmaps** | Socioeconomic and health indicators (e.g., primary care access, education levels). | CSV or Excel; moderately easy. | Provides **additional structural covariates** related to health behavior. |
+:::
+
+### b. Data access
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+I’ve decided to use the “COVID-19 Vaccinations in the United States,
+County” data (data.CDC.gov). I’m running this locally, so because it’s a
+large dataset and I only need CA counties, I’d like to use the API
+instead of downloading the full CSV. Use SODA2 to avoid authentication.
+
+Please write minimally commented R code to download CA data for 2021
+from the CDC API. The endpoint is
+https://data.cdc.gov/resource/8xkx-amqh.csv.
+
+Also include a bullet list of the key packages you use and what they are
+for (I’ve never used APIs in R).
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+Below is minimal, ready-to-run R code that uses SODA2 (the Socrata Open
+Data API) to pull California county vaccination data for 2021 from the
+CDC endpoint.
+
+```{r}
+resp <- httr::GET(
+  url = "https://data.cdc.gov/resource/8xkx-amqh.csv",
+  query = list(
+    "$select" = "*",
+    "$where"  = "recip_state = 'CA' AND date BETWEEN '2021-01-01' AND '2021-12-31'",
+    "$limit"  = "500000"
+  )
+)
+
+httr::stop_for_status(resp)
+
+data <- readr::read_csv(httr::content(resp, as = "raw"), show_col_types = FALSE)
+head(data)
+```
+
+This should work without authentication and without downloading the full
+national dataset.
+
+Packages used (and what they’re for)
+
+-   httr – builds and sends HTTP requests; safely handles query
+    parameters and URL encoding.
+-   readr – reads CSV data efficiently (including from URLs or raw
+    content).
+-   utils – base R utilities; here utils::URLencode() is used to safely
+    encode the query string (only needed in the alternative version).
+:::
+
+### c. Understanding data format
+
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+I want to look at the column "series_complete_pop_pct", which I assume
+measures the percent of the county that is fully vaccinated (initial two
+doses, not boosters). First, please confirm this with the CDC
+documentation and provide a link for me.
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+Yes — your interpretation is right. From the CDC data dictionary,
+Series_Complete_Pop_Pct is defined as:
+
+> “Percent of people who are fully vaccinated (have second dose of a
+> two-dose vaccine or one dose of a single-dose vaccine) based on the
+> jurisdiction where recipient lives.”
+> [Data.CDC.gov](https://data.cdc.gov/api/views/unsk-b7fc/files/9cde68f4-a4de-4c14-8d77-c022a140d4a4?download=true&filename=DataDictionary_v9_07092021.xlsx&utm_source=chatgpt.com)
+
+This definition is used consistently across the CDC’s vaccination
+coverage datasets (jurisdiction and county level). The county dataset
+you’re using shares the same variable naming scheme. The documentation
+is available as an Excel data dictionary; for example:
+
+-   CDC data dictionary (includes Series_Complete_Pop_Pct) –
+    DataDictionary_v15_11192021.xlsx linked from the county dataset page
+    [Data.CDC.gov](https://data.cdc.gov/api/views/8xkx-amqh/files/95618c6c-43a5-4f13-bac6-138d0a2771a1?download=true&filename=DataDictionary_v15_11192021.xlsx&utm_source=chatgpt.com)
+:::
+
+### d. General literature review
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+I want to think about plotting this value over date for one county at a time. It starts slow, then builds up speed, then tapers off to slowly get to the maximum value. Im interested in these dynamics, especially that middle "rapid vaccination phase". Can you search the literature to see how people have quantified these types of curves in the past? Please put the response in a markdown table with columns for the model, example use in literature, and how it would capture the dynamics I'm interested in in the context of this data.
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+Below is a compact markdown table summarizing ways people have quantified sigmoid vaccination/uptake curves (like your series_complete_pop_pct vs date) and especially the rapid vaccination phase.
+
+| Model / approach | Example use in literature | How it would capture your “rapid vaccination phase” dynamics |
+|------------------|---------------------------|--------------------------------------------------------------|
+| Logistic / Gompertz growth curves | Widely used for COVID-19 cumulative cases/deaths; parameters interpreted as growth rate and inflection time.  | Fit `series_complete_pop_pct(t)` with a logistic or Gompertz curve per county; the **growth-rate parameter** and **inflection time** summarize how fast and when coverage increases most quickly. The middle “rapid phase” corresponds to the steep part around the inflection. |
+| Richards / generalized logistic curves | Used for COVID-19 fatality and case curves when growth is asymmetric; extends logistic to allow more flexible S-shapes.  | Fit a Richards curve per county; its **shape parameter** and **time of peak slope** describe how sharp/extended the rapid phase is. Can handle curves where speed-up and slow-down are not symmetric. |
+| Bass diffusion model (innovation + imitation) | Applied to COVID-19 vaccination uptake in Michigan; models weekly vaccinated as diffusion driven by innovators and imitators.  | Estimate Bass parameters from increments of `series_complete_pop_pct`. The **imitation parameter (q)** and **time of peak adoption rate** represent the strength and timing of the rapid middle phase, distinguishing early vs imitation-driven uptake. |
+| Diffusion-of-innovations thresholds | Surveys categorize individuals into innovators, early adopters, early/late majority, late adopters based on when they get vaccinated.  | Translate theory to county curves by defining dates when coverage crosses fixed thresholds (e.g., 2.5%, 16%, 50%, 84%). The **interval between 16% and 50%** approximates your rapid phase; its length and ∆pct give comparable speed metrics across counties. |
+| Time-to-threshold / growth-rate metrics | Policy and modeling papers compare epidemics using early exponential growth rates and times to reach specified levels.  | For each county, compute **time to L% (start)** and **H% (end)** coverage and the **average slope between L and H**. Choosing L/H to align with where curves visually speed up/slow down gives a simple nonparametric rapid-phase index. |
+| Nonparametric derivative-based summaries | Model-free growth curve tools in biostats and microbiology use smoothed derivatives to describe phases when parametric models fit poorly.  | Smooth `series_complete_pop_pct(t)` and compute first/second derivatives. Define **start of speed-up** as max second derivative, **start of slow-down** as min second derivative. Your rapid phase is the interval between them; summarize by its duration, ∆pct, and max slope. This is closest to the approach you’re envisioning. |
+:::
+
+### e. Connecting literature to our data
+
+```{r}
+data %>%
+    mutate(date = as.Date(date)) %>%
+    filter(recip_county %in% c(
+        'Kern County',
+        'Orange County',
+        'San Diego County',
+        'San Francisco County',
+        'Santa Cruz County',
+        'San Luis Obispo County'
+    )) %>%
+    ggplot(aes(x = date, y = series_complete_pop_pct)) +
+    facet_wrap(~recip_county) +
+    geom_hline(yintercept = 50, color = 'red') +
+    geom_point() +
+    # x-axis only list month
+    scale_x_date(date_breaks = "3 months", date_labels = "%b") +
+    labs(
+        x = "",
+        y = "Pct Fully Vaccinated",
+        title = "Cumulative Vaccination Curves for Selected California Counties, 2021\nRed dashed line at 50% vaccination"
+    ) +
+    # scale pct 0-100
+    scale_y_continuous(limits = c(0, 100))
+```
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+I've attached a figure with 6 example counties curves. I'm seeing very different shapes of curves (different "fast increasing zones": San Diego County is a small slope February through June, Santa Cruz County is a steeper slope March through June). Also, there is a long tail on the right side that isn't necessarily an asympote—all curves are still increasing relatively linearly at the end of 2021. Are there limitations of the options you mentioned that might not be able to fit these curves well? Please be put the response in a small table that could fit on a single portrait mode piece of paper.
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+Below is a compact markdown table summarizing the main limitations of the earlier curve-fitting approaches given shapes like those in your figure (different mid-phase slopes, extended linear tails, no clear asymptotes).
+It is sized to fit on a single portrait page.
+
+| Model / Approach | Key Limitation for Your Curves | Why It Fails on These CA Counties |
+|------------------|--------------------------------|-----------------------------------|
+| Logistic / Gompertz | Require a true asymptote; impose a single inflection point | Your curves do **not plateau** in 2021; many have **multi-phase acceleration** and a long near-linear tail. |
+| Richards / Generalized Sigmoids | More flexible but still assume eventual saturation and a single-wave shape | With **no clear bending toward a maximum**, parameters become unstable and cannot capture **extended linear tails**. |
+| Bass Diffusion (innovation + imitation) | Assumes a single-peaked adoption rate and strong deceleration near saturation | Counties show **no strong slowdown**, just steady linear increases; model misfits late-phase dynamics. |
+| Threshold-based (early/late adopter cutpoints) | Summaries, not models; thresholds may not be reached or meaningful | Counties vary widely in levels reached by 2021; thresholds can produce **incomparable phase lengths**. |
+| Derivative / Slope Metrics (nonparametric) | Sensitive to noise without careful smoothing | Conceptually fits your curves best, but needs smoothing choices; does not impose unrealistic sigmoid structure. |
+:::
+
+### f. Specific concepts literature review
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+My intuition is that none of these options you've introduced fit the data very well besides mabye the derivative based option.
+
+I'm thinking I'd like to identify key time points (start of speed up = date of max second derivative, start of slow down = date of min second derivative), and computing things like \# days in rapid vaccination phase, pct increase during rapid vaccination phase, pct vaccinated at start/end of phase, and max pct (at end of 2021). This would be a nonparametric option that is intuitive with the curves I've seen.
+
+Is this a reasonable approach? Are there any major issues or improper assumptions this would make?
+
+Is there any current literature that does something like this on covid vaccination data? What about in other fields?
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+Here’s a compact table answering all three parts of your question for your second-derivative–based, nonparametric phase definition.
+
+| Aspect | For your proposed method | Examples / References |
+|-------|--------------------------|------------------------|
+| Reasonable approach? | Yes. Smoothing `series_complete_pop_pct(t)` and using the **max/min of the estimated second derivative** to define “speed-up” and “slow-down” is a standard nonparametric idea (local polynomial / spline derivatives) and matches the shapes in your CA curves. | Nonparametric derivative estimation with local polynomial and spline methods is well-developed and used to explore structure in curves (including human growth and other biomedical data).  |
+| Major assumptions | Assumes the underlying coverage curve is **smooth and roughly monotone** over 2021; assumes a **single dominant acceleration and deceleration** (you choose which local max/min of the second derivative to use); assumes your smoothing choice (bandwidth / window) is appropriate so that extrema reflect signal, not noise. | Derivative-based methods in growth-curve and epidemiologic modeling make the same smoothness assumptions and emphasise careful bandwidth selection and edge treatment.  |
+| Main practical issues | (1) **Noise & bandwidth**: too little smoothing → spurious wiggles, too much → wash out true phase boundaries. (2) **Endpoints**: derivatives near Jan 1 / Dec 31 are unstable without boundary corrections. (3) **Multiple extrema**: if there are several peaks in the second derivative, you’ll need a rule (e.g., largest peak within a given time window). (4) **Reporting artifacts** (backlogs, holidays) can create artificial curvature unless pre-smoothed or aggregated (e.g., weekly). | Same issues are discussed in nonparametric derivative work (bias–variance tradeoff, boundary bias) and in derivative-based epidemic phase indicators.  |
+| COVID-19 vaccination literature | I don’t find work that **does exactly your pipeline** (smooth cumulative vaccine coverage → second derivative → define rapid-phase window and compute your set of metrics). The closest is country-level work defining **primary and secondary vaccination inflection points** on cumulative curves and studying coverage / timing at those points, but not full curvature-based “rapid phases”. | Vlajnic & Simske, *“Reaching Pandemic Milestones with Country Primary and Secondary Vaccination Inflection Points”* and related dissertation, which define vaccination inflection points and analyze timing and coverage at those points.  |
+| Analogous ideas in other fields | Yes. Very similar use of first/second derivatives to define biologically meaningful phases appears in **epidemic growth curves (for cases/deaths)** and **child growth / population growth curves**—e.g., using nonparametric or parametric fits, then examining derivatives and inflection points to mark acceleration, peak growth, and slowdown phases. | Reviews on growth-curve modeling in epidemiology and work on nonparametric epidemic growth/derivative analysis, as well as generic derivative-estimation papers that mention applications to human growth and curve comparison.  |
+
+In short: your approach is methodologically sound and quite natural for these data, with the main caveats being smoothing choices, endpoint behavior, and how you handle multiple curvature peaks. It also looks genuinely novel for COVID vaccination coverage, while having clear parallels in other applied areas
+:::

@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jenna Landy">
+<meta name="dcterms.date" content="2025-12-10">
+
+<title>AI for Everyday Coding</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="1_chatGPT_files/libs/clipboard/clipboard.min.js"></script>
+<script src="1_chatGPT_files/libs/quarto-html/quarto.js"></script>
+<script src="1_chatGPT_files/libs/quarto-html/popper.min.js"></script>
+<script src="1_chatGPT_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="1_chatGPT_files/libs/quarto-html/anchor.min.js"></script>
+<link href="1_chatGPT_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="1_chatGPT_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="1_chatGPT_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="1_chatGPT_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="1_chatGPT_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="1_chatGPT_files/libs/quarto-contrib/fontawesome6-6.7.2/all.min.css" rel="stylesheet">
+<link href="1_chatGPT_files/libs/quarto-contrib/fontawesome6-6.7.2/latex-fontsize.css" rel="stylesheet">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">AI for Everyday Coding</h1>
+<p class="subtitle lead">Part 1: Chat GPT for Data Access and Literature Review</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jenna Landy </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 10, 2025</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="part-1-chat-gpt-for-data-access-and-literature-review" class="level2">
+<h2 class="anchored" data-anchor-id="part-1-chat-gpt-for-data-access-and-literature-review">Part 1: Chat GPT for Data Access and Literature Review</h2>
+<p>Throughout this section, I’ll highlight queries with a blue background and replies with a green background. Note that GPT is not deterministic, so the exact response may vary if you input the same query.</p>
+<section id="a.-data-availability" class="level3">
+<h3 class="anchored" data-anchor-id="a.-data-availability">a. Data availability</h3>
+<div style="background-color: #B3E5FC;">
+<p><strong>Query</strong> <i class="fa-solid fa-search" aria-label="search"></i></p>
+<p>I want to study the dynamics of vaccination rates (e.g., quantifying early adopters, counties that rapidly vs slowly vaccinated, etc.) across California counties in 2021 and to understand how the dynamics are connected to demographic factors. For this chat, always be concise. Use small tables when applicable (should fit on printer paper). Use the package::function notation whenever calling functions.</p>
+<p>Today, I want help identifying the best publicly available data to use and defining an initial quantification of these dynamics.</p>
+<p>I’d like to start by looking at some vaccination rates data. First, please list relevant datasets comparing the ease of access, file format, and relevance to my question.</p>
+</div>
+<div style="background-color: #C8E6C9;">
+<p><strong>Reply</strong> <i class="fa-solid fa-robot" aria-label="robot"></i></p>
+<p>Below is a concise, notebook-friendly markdown table of publicly available datasets suitable for studying county-level COVID-19 vaccination dynamics in California (2021) and linking them to demographic factors. I chose only high-relevance, high-quality sources that are easy to access and well-documented.</p>
+<p><strong>Key Datasets for California County-Level Vaccination Dynamics (2021)</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Dataset / Source</th>
+<th>What It Provides</th>
+<th>Format &amp; Ease of Access</th>
+<th>Relevance to Your Question</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>California Health &amp; Human Services (CHHS) – COVID-19 Vaccine Progress Dashboard</strong></td>
+<td>Daily/weekly county-level vaccination counts &amp; rates (1st dose, fully vaccinated, boosters). Historical data available for 2021.</td>
+<td>CSV directly downloadable; API available; very easy to access.</td>
+<td><strong>Primary dataset</strong> for characterizing vaccination dynamics across counties.</td>
+</tr>
+<tr class="even">
+<td><strong>CDC COVID-19 Vaccinations in the United States, County</strong></td>
+<td>Daily county-level vaccination counts nationwide; includes California; often smoother than state-level reporting.</td>
+<td>CSV via CDC Data Tracker; API (<a href="https://data.cdc.gov/Vaccinations/COVID-19-Vaccinations-in-the-United-States-County/8xkx-amqh/about_data">data.cdc.gov</a>) available; easy.</td>
+<td>Good for <strong>cross-validation</strong>, fills occasional gaps in CHHS data.</td>
+</tr>
+<tr class="odd">
+<td><strong>US Census Bureau – American Community Survey (ACS) 5-Year Estimates</strong></td>
+<td>Demographics: age, race/ethnicity, income, education, urbanicity, population density.</td>
+<td>Downloadable CSV; API available; moderate effort.</td>
+<td>Essential for linking vaccination pace to <strong>demographics</strong>.</td>
+</tr>
+<tr class="even">
+<td><strong>USDA Economic Research Service – Rural-Urban Continuum Codes</strong></td>
+<td>County-level codes for rurality/urbanicity.</td>
+<td>CSV; very easy.</td>
+<td>Useful predictor of vaccination uptake patterns.</td>
+</tr>
+<tr class="odd">
+<td><strong>MIT Election Data &amp; Science Lab – County Presidential Election Returns (2020)</strong></td>
+<td>County-level political leaning variables.</td>
+<td>CSV; easy.</td>
+<td>Often strongly associated with vaccination behavior; helpful to include as a <strong>contextual explanatory variable</strong>.</td>
+</tr>
+<tr class="even">
+<td><strong>County Health Rankings &amp; Roadmaps</strong></td>
+<td>Socioeconomic and health indicators (e.g., primary care access, education levels).</td>
+<td>CSV or Excel; moderately easy.</td>
+<td>Provides <strong>additional structural covariates</strong> related to health behavior.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="b.-data-access" class="level3">
+<h3 class="anchored" data-anchor-id="b.-data-access">b. Data access</h3>
+<div style="background-color: #B3E5FC;">
+<p><strong>Query</strong> <i class="fa-solid fa-search" aria-label="search"></i></p>
+<p>I’ve decided to use the “COVID-19 Vaccinations in the United States, County” data (data.CDC.gov). I’m running this locally, so because it’s a large dataset and I only need CA counties, I’d like to use the API instead of downloading the full CSV. Use SODA2 to avoid authentication.</p>
+<p>Please write minimally commented R code to download CA data for 2021 from the CDC API. The endpoint is https://data.cdc.gov/resource/8xkx-amqh.csv.</p>
+<p>Also include a bullet list of the key packages you use and what they are for (I’ve never used APIs in R).</p>
+</div>
+<div style="background-color: #C8E6C9;">
+<p><strong>Reply</strong> <i class="fa-solid fa-robot" aria-label="robot"></i></p>
+<p>Below is minimal, ready-to-run R code that uses SODA2 (the Socrata Open Data API) to pull California county vaccination data for 2021 from the CDC endpoint.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>resp <span class="ot">&lt;-</span> httr<span class="sc">::</span><span class="fu">GET</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">url =</span> <span class="st">"https://data.cdc.gov/resource/8xkx-amqh.csv"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">query =</span> <span class="fu">list</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"$select"</span> <span class="ot">=</span> <span class="st">"*"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"$where"</span>  <span class="ot">=</span> <span class="st">"recip_state = 'CA' AND date BETWEEN '2021-01-01' AND '2021-12-31'"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"$limit"</span>  <span class="ot">=</span> <span class="st">"500000"</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>httr<span class="sc">::</span><span class="fu">stop_for_status</span>(resp)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(httr<span class="sc">::</span><span class="fu">content</span>(resp, <span class="at">as =</span> <span class="st">"raw"</span>), <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 80
+  date                fips  mmwr_week recip_county  recip_state completeness_pct
+  &lt;dttm&gt;              &lt;chr&gt;     &lt;dbl&gt; &lt;chr&gt;         &lt;chr&gt;                  &lt;dbl&gt;
+1 2021-12-31 00:00:00 06037        52 Los Angeles … CA                      97.5
+2 2021-12-31 00:00:00 06101        52 Sutter County CA                      97.5
+3 2021-12-31 00:00:00 06017        52 El Dorado Co… CA                      97.5
+4 2021-12-31 00:00:00 06031        52 Kings County  CA                      97.5
+5 2021-12-31 00:00:00 06039        52 Madera County CA                      97.5
+6 2021-12-31 00:00:00 06027        52 Inyo County   CA                       0  
+# ℹ 74 more variables: administered_dose1_recip &lt;dbl&gt;,
+#   administered_dose1_pop_pct &lt;dbl&gt;, administered_dose1_recip_5plus &lt;dbl&gt;,
+#   administered_dose1_recip_5pluspop_pct &lt;dbl&gt;,
+#   administered_dose1_recip_12plus &lt;dbl&gt;,
+#   administered_dose1_recip_12pluspop_pct &lt;dbl&gt;,
+#   administered_dose1_recip_18plus &lt;dbl&gt;,
+#   administered_dose1_recip_18pluspop_pct &lt;dbl&gt;, …</code></pre>
+</div>
+</div>
+<p>This should work without authentication and without downloading the full national dataset.</p>
+<p>Packages used (and what they’re for)</p>
+<ul>
+<li>httr – builds and sends HTTP requests; safely handles query parameters and URL encoding.</li>
+<li>readr – reads CSV data efficiently (including from URLs or raw content).</li>
+<li>utils – base R utilities; here utils::URLencode() is used to safely encode the query string (only needed in the alternative version).</li>
+</ul>
+</div>
+</section>
+<section id="c.-understanding-data-format" class="level3">
+<h3 class="anchored" data-anchor-id="c.-understanding-data-format">c.&nbsp;Understanding data format</h3>
+<div style="background-color: #B3E5FC;">
+<p><strong>Query</strong> <i class="fa-solid fa-search" aria-label="search"></i></p>
+<p>I want to look at the column “series_complete_pop_pct”, which I assume measures the percent of the county that is fully vaccinated (initial two doses, not boosters). First, please confirm this with the CDC documentation and provide a link for me.</p>
+</div>
+<div style="background-color: #C8E6C9;">
+<p><strong>Reply</strong> <i class="fa-solid fa-robot" aria-label="robot"></i></p>
+<p>Yes — your interpretation is right. From the CDC data dictionary, Series_Complete_Pop_Pct is defined as:</p>
+<blockquote class="blockquote">
+<p>“Percent of people who are fully vaccinated (have second dose of a two-dose vaccine or one dose of a single-dose vaccine) based on the jurisdiction where recipient lives.” <a href="https://data.cdc.gov/api/views/unsk-b7fc/files/9cde68f4-a4de-4c14-8d77-c022a140d4a4?download=true&amp;filename=DataDictionary_v9_07092021.xlsx&amp;utm_source=chatgpt.com">Data.CDC.gov</a></p>
+</blockquote>
+<p>This definition is used consistently across the CDC’s vaccination coverage datasets (jurisdiction and county level). The county dataset you’re using shares the same variable naming scheme. The documentation is available as an Excel data dictionary; for example:</p>
+<ul>
+<li>CDC data dictionary (includes Series_Complete_Pop_Pct) – DataDictionary_v15_11192021.xlsx linked from the county dataset page <a href="https://data.cdc.gov/api/views/8xkx-amqh/files/95618c6c-43a5-4f13-bac6-138d0a2771a1?download=true&amp;filename=DataDictionary_v15_11192021.xlsx&amp;utm_source=chatgpt.com">Data.CDC.gov</a></li>
+</ul>
+</div>
+</section>
+<section id="d.-general-literature-review" class="level3">
+<h3 class="anchored" data-anchor-id="d.-general-literature-review">d.&nbsp;General literature review</h3>
+<div style="background-color: #B3E5FC;">
+<p><strong>Query</strong> <i class="fa-solid fa-search" aria-label="search"></i></p>
+<p>I want to think about plotting this value over date for one county at a time. It starts slow, then builds up speed, then tapers off to slowly get to the maximum value. Im interested in these dynamics, especially that middle “rapid vaccination phase”. Can you search the literature to see how people have quantified these types of curves in the past? Please put the response in a markdown table with columns for the model, example use in literature, and how it would capture the dynamics I’m interested in in the context of this data. Keep the table small so it could fit on a single portrait mode piece of paper.</p>
+</div>
+<div style="background-color: #C8E6C9;">
+<p><strong>Reply</strong> <i class="fa-solid fa-robot" aria-label="robot"></i></p>
+<p>Below is a compact markdown table you can paste into a Quarto notebook, summarizing ways people have quantified sigmoid vaccination/uptake curves (like your series_complete_pop_pct vs date) and especially the rapid vaccination phase.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 25%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model / approach</th>
+<th>Example use in literature</th>
+<th>How it would capture your “rapid vaccination phase” dynamics</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Logistic / Gompertz growth curves</td>
+<td>Widely used for COVID-19 cumulative cases/deaths; parameters interpreted as growth rate and inflection time.</td>
+<td>Fit <code>series_complete_pop_pct(t)</code> with a logistic or Gompertz curve per county; the <strong>growth-rate parameter</strong> and <strong>inflection time</strong> summarize how fast and when coverage increases most quickly. The middle “rapid phase” corresponds to the steep part around the inflection.</td>
+</tr>
+<tr class="even">
+<td>Richards / generalized logistic curves</td>
+<td>Used for COVID-19 fatality and case curves when growth is asymmetric; extends logistic to allow more flexible S-shapes.</td>
+<td>Fit a Richards curve per county; its <strong>shape parameter</strong> and <strong>time of peak slope</strong> describe how sharp/extended the rapid phase is. Can handle curves where speed-up and slow-down are not symmetric.</td>
+</tr>
+<tr class="odd">
+<td>Bass diffusion model (innovation + imitation)</td>
+<td>Applied to COVID-19 vaccination uptake in Michigan; models weekly vaccinated as diffusion driven by innovators and imitators.</td>
+<td>Estimate Bass parameters from increments of <code>series_complete_pop_pct</code>. The <strong>imitation parameter (q)</strong> and <strong>time of peak adoption rate</strong> represent the strength and timing of the rapid middle phase, distinguishing early vs imitation-driven uptake.</td>
+</tr>
+<tr class="even">
+<td>Diffusion-of-innovations thresholds</td>
+<td>Surveys categorize individuals into innovators, early adopters, early/late majority, late adopters based on when they get vaccinated.</td>
+<td>Translate theory to county curves by defining dates when coverage crosses fixed thresholds (e.g., 2.5%, 16%, 50%, 84%). The <strong>interval between 16% and 50%</strong> approximates your rapid phase; its length and ∆pct give comparable speed metrics across counties.</td>
+</tr>
+<tr class="odd">
+<td>Time-to-threshold / growth-rate metrics</td>
+<td>Policy and modeling papers compare epidemics using early exponential growth rates and times to reach specified levels.</td>
+<td>For each county, compute <strong>time to L% (start)</strong> and <strong>H% (end)</strong> coverage and the <strong>average slope between L and H</strong>. Choosing L/H to align with where curves visually speed up/slow down gives a simple nonparametric rapid-phase index.</td>
+</tr>
+<tr class="even">
+<td>Nonparametric derivative-based summaries</td>
+<td>Model-free growth curve tools in biostats and microbiology use smoothed derivatives to describe phases when parametric models fit poorly.</td>
+<td>Smooth <code>series_complete_pop_pct(t)</code> and compute first/second derivatives. Define <strong>start of speed-up</strong> as max second derivative, <strong>start of slow-down</strong> as min second derivative. Your rapid phase is the interval between them; summarize by its duration, ∆pct, and max slope. This is closest to the approach you’re envisioning.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="e.-connecting-literature-to-our-data" class="level3">
+<h3 class="anchored" data-anchor-id="e.-connecting-literature-to-our-data">e. Connecting literature to our data</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">as.Date</span>(date)) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(recip_county <span class="sc">%in%</span> <span class="fu">c</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="st">'Kern County'</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        <span class="st">'Orange County'</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="st">'San Diego County'</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="st">'San Francisco County'</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="st">'Santa Cruz County'</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>        <span class="st">'San Luis Obispo County'</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    )) <span class="sc">%&gt;%</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> series_complete_pop_pct)) <span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span>recip_county) <span class="sc">+</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">50</span>, <span class="at">color =</span> <span class="st">'red'</span>) <span class="sc">+</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># x-axis only list month</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_x_date</span>(<span class="at">date_breaks =</span> <span class="st">"3 months"</span>, <span class="at">date_labels =</span> <span class="st">"%b"</span>) <span class="sc">+</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">""</span>,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Pct Fully Vaccinated"</span>,</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Cumulative Vaccination Curves for Selected California Counties, 2021</span><span class="sc">\n</span><span class="st">Red dashed line at 50% vaccination"</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># scale pct 0-100</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_continuous</span>(<span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="1_chatGPT_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div style="background-color: #B3E5FC;">
+<p><strong>Query</strong> <i class="fa-solid fa-search" aria-label="search"></i></p>
+<p>I’ve attached a figure with 6 example counties curves. I’m seeing very different shapes of curves (different “fast increasing zones”: San Diego County is a small slope February through June, Santa Cruz County is a steeper slope March through June). Also, there is a long tail on the right side that isn’t necessarily an asympote—all curves are still increasing relatively linearly at the end of 2021. Are there limitations of the options you mentioned that might not be able to fit these curves well? Please be put the response in a small table that could fit on a single portrait mode piece of paper.</p>
+</div>
+<div style="background-color: #C8E6C9;">
+<p><strong>Reply</strong> <i class="fa-solid fa-robot" aria-label="robot"></i></p>
+<p>Below is a compact markdown table summarizing the main limitations of the earlier curve-fitting approaches given shapes like those in your figure (different mid-phase slopes, extended linear tails, no clear asymptotes). It is sized to fit on a single portrait page.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 37%">
+<col style="width: 41%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model / Approach</th>
+<th>Key Limitation for Your Curves</th>
+<th>Why It Fails on These CA Counties</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Logistic / Gompertz</td>
+<td>Require a true asymptote; impose a single inflection point</td>
+<td>Your curves do <strong>not plateau</strong> in 2021; many have <strong>multi-phase acceleration</strong> and a long near-linear tail.</td>
+</tr>
+<tr class="even">
+<td>Richards / Generalized Sigmoids</td>
+<td>More flexible but still assume eventual saturation and a single-wave shape</td>
+<td>With <strong>no clear bending toward a maximum</strong>, parameters become unstable and cannot capture <strong>extended linear tails</strong>.</td>
+</tr>
+<tr class="odd">
+<td>Bass Diffusion (innovation + imitation)</td>
+<td>Assumes a single-peaked adoption rate and strong deceleration near saturation</td>
+<td>Counties show <strong>no strong slowdown</strong>, just steady linear increases; model misfits late-phase dynamics.</td>
+</tr>
+<tr class="even">
+<td>Threshold-based (early/late adopter cutpoints)</td>
+<td>Summaries, not models; thresholds may not be reached or meaningful</td>
+<td>Counties vary widely in levels reached by 2021; thresholds can produce <strong>incomparable phase lengths</strong>.</td>
+</tr>
+<tr class="odd">
+<td>Derivative / Slope Metrics (nonparametric)</td>
+<td>Sensitive to noise without careful smoothing</td>
+<td>Conceptually fits your curves best, but needs smoothing choices; does not impose unrealistic sigmoid structure.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="f.-specific-concepts-literature-review" class="level3">
+<h3 class="anchored" data-anchor-id="f.-specific-concepts-literature-review">f.&nbsp;Specific concepts literature review</h3>
+<div style="background-color: #B3E5FC;">
+<p><strong>Query</strong> <i class="fa-solid fa-search" aria-label="search"></i></p>
+<p>My intuition is that none of these options you’ve introduced fit the data very well besides mabye the derivative based option.</p>
+<p>I’m thinking I’d like to identify key time points (start of speed up = date of max second derivative, start of slow down = date of min second derivative), and computing things like # days in rapid vaccination phase, pct increase during rapid vaccination phase, pct vaccinated at start/end of phase, and max pct (at end of 2021). This would be a nonparametric option that is intuitive with the curves I’ve seen.</p>
+<p>Is this a reasonable approach? Are there any major issues or improper assumptions this would make?</p>
+<p>Is there any current literature that does something like this on covid vaccination data? What about in other fields? Please put the response in a small table that could fit on a single portrait mode piece of paper.</p>
+</div>
+<div style="background-color: #C8E6C9;">
+<p><strong>Reply</strong> <i class="fa-solid fa-robot" aria-label="robot"></i></p>
+<p>Here’s a compact table answering all three parts of your question for your second-derivative–based, nonparametric phase definition.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 45%">
+<col style="width: 42%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Aspect</th>
+<th>For your proposed method</th>
+<th>Examples / References</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Reasonable approach?</td>
+<td>Yes. Smoothing <code>series_complete_pop_pct(t)</code> and using the <strong>max/min of the estimated second derivative</strong> to define “speed-up” and “slow-down” is a standard nonparametric idea (local polynomial / spline derivatives) and matches the shapes in your CA curves.</td>
+<td>Nonparametric derivative estimation with local polynomial and spline methods is well-developed and used to explore structure in curves (including human growth and other biomedical data).</td>
+</tr>
+<tr class="even">
+<td>Major assumptions</td>
+<td>Assumes the underlying coverage curve is <strong>smooth and roughly monotone</strong> over 2021; assumes a <strong>single dominant acceleration and deceleration</strong> (you choose which local max/min of the second derivative to use); assumes your smoothing choice (bandwidth / window) is appropriate so that extrema reflect signal, not noise.</td>
+<td>Derivative-based methods in growth-curve and epidemiologic modeling make the same smoothness assumptions and emphasise careful bandwidth selection and edge treatment.</td>
+</tr>
+<tr class="odd">
+<td>Main practical issues</td>
+<td>(1) <strong>Noise &amp; bandwidth</strong>: too little smoothing → spurious wiggles, too much → wash out true phase boundaries. (2) <strong>Endpoints</strong>: derivatives near Jan 1 / Dec 31 are unstable without boundary corrections. (3) <strong>Multiple extrema</strong>: if there are several peaks in the second derivative, you’ll need a rule (e.g., largest peak within a given time window). (4) <strong>Reporting artifacts</strong> (backlogs, holidays) can create artificial curvature unless pre-smoothed or aggregated (e.g., weekly).</td>
+<td>Same issues are discussed in nonparametric derivative work (bias–variance tradeoff, boundary bias) and in derivative-based epidemic phase indicators.</td>
+</tr>
+<tr class="even">
+<td>COVID-19 vaccination literature</td>
+<td>I don’t find work that <strong>does exactly your pipeline</strong> (smooth cumulative vaccine coverage → second derivative → define rapid-phase window and compute your set of metrics). The closest is country-level work defining <strong>primary and secondary vaccination inflection points</strong> on cumulative curves and studying coverage / timing at those points, but not full curvature-based “rapid phases”.</td>
+<td>Vlajnic &amp; Simske, <em>“Reaching Pandemic Milestones with Country Primary and Secondary Vaccination Inflection Points”</em> and related dissertation, which define vaccination inflection points and analyze timing and coverage at those points.</td>
+</tr>
+<tr class="odd">
+<td>Analogous ideas in other fields</td>
+<td>Yes. Very similar use of first/second derivatives to define biologically meaningful phases appears in <strong>epidemic growth curves (for cases/deaths)</strong> and <strong>child growth / population growth curves</strong>—e.g., using nonparametric or parametric fits, then examining derivatives and inflection points to mark acceleration, peak growth, and slowdown phases.</td>
+<td>Reviews on growth-curve modeling in epidemiology and work on nonparametric epidemic growth/derivative analysis, as well as generic derivative-estimation papers that mention applications to human growth and curve comparison.</td>
+</tr>
+</tbody>
+</table>
+<p>In short: your approach is methodologically sound and quite natural for these data, with the main caveats being smoothing choices, endpoint behavior, and how you handle multiple curvature peaks. It also looks genuinely novel for COVID vaccination coverage, while having clear parallels in other applied areas</p>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

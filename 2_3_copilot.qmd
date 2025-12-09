@@ -1,0 +1,341 @@
+---
+title: "AI for Everyday Coding"
+subtitle: "Part 2-3: GitHub Copilot for Data Analysis and Visualization in Rstudio and VS Code"
+author: "Jenna Landy"
+date: "2025-12-10"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: false
+    theme: united
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r message=FALSE}
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(ggrepel)
+library(ggh4x)
+library(patchwork)
+library(glue)
+```
+
+## Part 1: Chat GPT for Data Access and Literature Review
+
+I've extracted relevant code from Part 1, but for convenience, have removed all queries and responses.
+
+```{r}
+resp <- httr::GET(
+  url = "https://data.cdc.gov/resource/8xkx-amqh.csv",
+  query = list(
+    "$select" = "*",
+    "$where"  = "recip_state = 'CA' AND date BETWEEN '2021-01-01' AND '2021-12-31'",
+    "$limit"  = "500000"
+  )
+)
+
+httr::stop_for_status(resp)
+
+data <- readr::read_csv(httr::content(resp, as = "raw"), show_col_types = FALSE)
+```
+
+## Part 2: Data filtering and algorithm development with GitHub Copilot in VS Code
+
+::: callout-tip
+GitHub Copilot provides AI suggestions that can be implemented by pressing `tab`. It works best if you include a comment of what you're trying to do, then start to write your code (e.g., first line of tidyverse `data %>%`).
+
+In VS Code, GitHub copilot has a chat function with the context of whatever file you're working on. The chat is more powerful to create large chunks of code or answer questions about specific functions or errors.
+:::
+
+### a. Processing data
+
+```{r}
+# identify counties with all zeros
+zero_counties <- data %>%
+    group_by(recip_county) %>%
+    summarize(
+        max_pct = max(series_complete_pop_pct, na.rm = TRUE)
+    ) %>%
+    filter(max_pct == 0) %>%
+    pull(recip_county)
+
+data_filtered <- data %>%
+    # filter out unknown and zero counties
+    filter(recip_county != "Unknown County", !(recip_county %in% zero_counties)) %>%
+    # reduce only to columns we'll use
+    select(
+        date, fips, recip_county,
+        series_complete_pop_pct
+    ) %>%
+    # rename series_complete_pop_pct to pct for ease of use
+    rename(pct = series_complete_pop_pct)
+
+# identify unique counties
+counties <- unique(data_filtered$recip_county)
+
+# print counties separated by commas
+paste(counties, collapse = ", ")
+```
+
+### b. Code from pseudocode
+
+In this section, we'll use local linear regression to estimate derivatives (see [Brabanter et al. 2013](https://jmlr.csail.mit.edu/papers/volume14/debrabanter13a-deleted/debrabanter13a.pdf) for an overview of these types of methods). Basically, we estimate $\partial y/\partial x$ at a point $x_i$ with the slope of a linear regression on a set of points symmetric around $x_i$: $i-w,...,i,...,i+w$, where width $w$ is a parameter of the function.
+
+::: {style="background-color: #B3E5FC;"}
+**Query** {{< fa search >}}
+
+Write a function that takes in vectors y and x and returns the approximate derivative dy/dx evaluated at each point $x_i$. For a value $x_i$, I want to do this by getting the linear regression coefficient using w points on either side ($x_{i-w} : x_{i+w}$), where width w can be a parameter of the function.
+:::
+
+::: {style="background-color: #C8E6C9;"}
+**Reply** {{< fa robot >}}
+
+```{r}
+approx_derivative <- function(y, x, w) {
+  n <- length(y)
+  deriv <- numeric(n)
+  for (i in seq_len(n)) {
+    idx <- max(1, i - w):min(n, i + w)
+    x_window <- x[idx]
+    y_window <- y[idx]
+    fit <- lm(y_window ~ x_window)
+    deriv[i] <- coef(fit)[2] # slope
+  }
+  return(deriv)
+}
+```
+:::
+
+### c. Manipulating data
+
+```{r}
+county_curve <- function(county, w = 40) {
+    curve_data <- data_filtered %>%
+        filter(recip_county == county) %>%
+        # sort in date order
+        arrange(date) %>%
+        # add columns for the first and second derivatives
+        mutate(
+            d1 = approx_derivative(pct, date, w = w),
+            d2 = approx_derivative(d1, date, w = w)
+        ) %>%
+        # identify key points: speed up and slow down
+        mutate(
+            speed_up = d2 == max(d2),
+            slow_down = d2 == min(d2)
+        ) %>%
+        # only return curve data
+        select(
+            date, pct, d1, d2, speed_up, slow_down
+        )
+}
+curve_data <- county_curve("Santa Cruz County")
+head(curve_data)
+```
+
+
+## Part 3: Data visualization with GitHub Copilot in RStudio
+
+::: callout-tip
+Rstudio does not offer the chat functionality, but it still offers code completion. This a good starting point for users who are most comfortable with RStudio and only want to test out one new tool at a time.
+
+RStudio already has some default code completion that can compete with Copilot's suggestions. This means that pressing `tab` may not always implement Copilot's suggestions. To avoid this, you can disable the RStudio completions in Settings > Code > Completion > Show code completions: "Never".
+:::
+
+### a. Visualizing data
+
+```{r}
+plot_county_curve <- function(county, w = 40, derivs = TRUE) {
+    facet_labels <- c(
+        'Pct Fully\nVaccinated',
+        'First\nDerivative',
+        'Second\nDerivative'
+    )
+    curve_data <- county_curve(county, w)
+    curve_data_long <- curve_data %>%
+        # combine columns pct, d1, d2 into long format for faceting
+        pivot_longer(
+            cols = c(pct, d1, d2)
+        ) %>%
+        # give labels to the facets
+        mutate(
+            name = factor(
+                name,
+                levels = c('pct','d1','d2'),
+                labels = facet_labels
+            )
+        ) 
+    if (!derivs) {
+        curve_data_long <- curve_data_long %>%
+            filter(name == 'Pct Fully\nVaccinated')
+    }
+    curve_data_long %>%
+        ggplot(aes(x = date, y = value)) +
+        ggh4x::facet_grid2(
+            rows = vars(name), switch = "y",
+            scales = "free"
+        ) +
+        geom_point() +
+        ggtitle(county) +
+        # vertical red dashed lines at speed_up and slow_down
+        geom_vline(
+            data = curve_data %>% filter(speed_up | slow_down),
+            aes(xintercept = date),
+            color = 'red',
+            linetype = 'dashed'
+        ) +
+        # horizontal red dashed lines at pct for speed_up and slow_down
+        geom_hline(
+            data = curve_data %>% 
+                filter(speed_up | slow_down) %>%
+                # only include it for the pct facet
+                mutate(
+                    name = factor(
+                        "pct", 
+                        levels = c('pct','d1','d2'), 
+                        labels = facet_labels
+                    )
+                ),
+            aes(yintercept = pct),
+            color = 'red',
+            linetype = 'dashed'
+        ) +
+        # simple theme without grey background
+        theme_bw() +
+        theme(
+            # put facet labels on the left with horizontal text
+            strip.placement = "outside",
+            strip.text.y.left = element_text(angle = 0)
+        ) +
+        labs(
+            x = "",
+            y = "",
+            title = paste("Vaccination Curve for", county, "\nRed dashed lines indicate boarders of rapid vaccination phase")
+        ) +
+        # rescale pct facet to 0-100 with ggh4x facetted_pos_scales
+        ggh4x::facetted_pos_scales(
+            y = list(
+                name = scale_y_continuous(limits = c(0, 100))
+            )
+        )
+}
+plot_county_curve("Santa Cruz County")
+```
+
+### b. Offloading repetitive tasks
+
+```{r}
+county_curve_metrics <- function(county, w = 40) {
+    curve_data <- county_curve(county, w)
+
+    # duration of rapid vaccination window
+    duration = curve_data$date[curve_data$slow_down] - 
+               curve_data$date[curve_data$speed_up]
+
+    # pct at start and stop of rapid vaccination window
+    pct_start = curve_data$pct[curve_data$speed_up]
+    pct_stop = curve_data$pct[curve_data$slow_down]
+
+    # pct gained during rapid vaccination window
+    pct_gained = pct_stop - pct_start
+
+    # avg slope during rapid vaccination window
+    slope = pct_gained / as.numeric(duration)
+
+    # actual dates
+    start = curve_data$date[curve_data$speed_up]
+    stop = curve_data$date[curve_data$slow_down]
+
+    # max at end of 2021
+    pct_max = max(curve_data$pct)
+
+    return(list(
+        "county" = county,
+        "start" = as.Date(start),
+        "pct_start" = pct_start,
+        "stop" = as.Date(stop),
+        "pct_stop" = pct_stop,
+        "duration" = as.numeric(duration),
+        "pct_gained" = pct_gained,
+        "pct_max" = pct_max,
+        "slope" = slope
+    ))
+}
+county_curve_metrics("Santa Cruz County")
+```
+
+### c. Exploratory data analysis (EDA)
+
+```{r}
+# run county_curve_metrics on all counties and use each
+# output as a row in a matrix
+county_curvature_data <- counties %>%
+    lapply(., county_curve_metrics) %>%
+    do.call(rbind, .)
+
+# turn into dataframe with correct column types
+county_curvature_data <- county_curvature_data %>%
+    data.frame() %>%
+    mutate(
+        # make all columns numeric besides county
+        across(-c(county), as.numeric),
+        # makde date columns dates
+        across(c(start, stop), as.Date)
+    )
+head(county_curvature_data)
+```
+
+```{r}
+# plot date where speedup began vs slope of rapid vaccination phase
+ggplot(county_curvature_data, aes(x = start, y = slope, label = county)) +
+    geom_point() +
+    ggrepel::geom_label_repel(
+        size = 2,
+        # no shape around the text
+        label.size = 0,
+        # no background
+        fill = NA
+    ) +
+    labs(
+        x = "Start of Rapid Vaccination Phase",
+        y = "Slope of Rapid Vaccination Phase",
+        title = "County-level COVID-19 Vaccination Dynamics in California, 2021"
+    ) +
+    # simple theme without grey background
+    theme_bw()
+```
+
+Counties that started their rapid vaccination phase later tend to have a higher slope (playing catch-up?). We take a look at to counties on either extreme of this trend: Santa Clara didn't start rapid vaccination until April but had a high slope (0.65% per-day increase), while Lassen started rapid vaccination in February but had a low slope (below 0.2% per-day increase).
+
+```{r}
+plot_county_curve("Santa Clara County")
+plot_county_curve("Lassen County")
+```
+
+```{r}
+# plot duration vs increase during rapid vaccination phase
+ggplot(county_curvature_data, aes(x = duration, y = pct_gained, label = county)) +
+    geom_point() +
+    ggrepel::geom_label_repel(
+        size = 2,
+        # no shape around the text
+        label.size = 0,
+        # no background
+        fill = NA
+    ) +
+    labs(
+        x = "Duration (days)",
+        y = "Increase in Pct Fully Vaccinated",
+        title = "County-level Vaccination Dynamics in California, 2021\nMetrics of Rapid Phase"
+    )
+```
+
+```{r}
+# pairs plots
+pairs(county_curvature_data %>% select(-county))
+```
