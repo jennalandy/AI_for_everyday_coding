@@ -133,7 +133,7 @@ The first recommendation changes the yscae of all facets, which is not what I as
 
 The second recommendation libraries the correct package `ggh4x`, but does not use it in the code suggestion. Implementing this suggestion results in an error message.
 
-<img src="failure_example_1.png" width = 50%>
+<img src="images/failure_example_1.png" width = 50%>
 
 Once I started typed `+ ggh4x::facetted_pos_scales(` myself, Copilot was able to complete the code correctly.
 
