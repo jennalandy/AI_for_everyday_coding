@@ -4,7 +4,10 @@ This tutorial provides a practical introduction to AI tools for accelerating eve
 
 ## Preface
 
-- I am not an AI expert, but I code a lot and have benefited from these tools
+- I do not claim to be an AI expert, but I code a lot and have benefited from these tools
+- My background:
+    - PhD in Biostatistics @ Harvard, BS in Statistics and Data Science @ Cal Poly SLO
+    - I’ve made R packages, python packages, jupyter lab extensions, shiny apps, bookdowns, quarto and rmd websites, parameterized rmd reports -- AI tools make all of these things easier
 - You may benefit from this tutorial if…
     - You write code regularly and work with data
     - You’re interested in lightweight tools that fit naturally into your existing workflow
